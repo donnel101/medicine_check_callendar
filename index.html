@@ -49,6 +49,7 @@
       flex-direction: column;
       align-items: center;
       justify-content: flex-start;
+      position: relative;
     }
     .day-header {
       font-weight: bold;
@@ -57,20 +58,19 @@
       min-height: auto;
     }
     .today {
-        background: #ffefc2 !important;   /* soft yellow highlight */
-        border: 2px solid #ff9800;
-        position: relative;
+      background: #ffefc2 !important;
+      border: 2px solid #ff9800;
     }
     .today label {
-        font-weight: bold;
-        color: #e65100;
+      font-weight: bold;
+      color: #e65100;
     }
     .today::after {
-        content: "Today";
-        font-size: 0.6rem;
-        color: #e65100;
-        position: absolute;
-        bottom: 4px;
+      content: "Today";
+      font-size: 0.6rem;
+      color: #e65100;
+      position: absolute;
+      bottom: 4px;
     }
     input[type="checkbox"] {
       transform: scale(1.2);
@@ -101,6 +101,16 @@
     const monthYearEl = document.getElementById("monthYear");
     let currentDate = new Date();
 
+    // Load saved data once
+    function loadMedsData() {
+      return JSON.parse(localStorage.getItem("meds-tracker") || "{}");
+    }
+
+    // Save data back
+    function saveMedsData(data) {
+      localStorage.setItem("meds-tracker", JSON.stringify(data));
+    }
+
     function renderCalendar(date) {
       calendarEl.innerHTML = "";
       const year = date.getFullYear();
@@ -110,6 +120,9 @@
       const lastDate = new Date(year, month + 1, 0).getDate();
 
       monthYearEl.textContent = date.toLocaleString("default", { month: "long", year: "numeric" });
+
+      // Load existing meds data
+      const medsData = loadMedsData();
 
       // Weekday headers
       const weekdays = ["Sun", "Mon", "Tue", "Wed", "Thu", "Fri", "Sat"];
@@ -122,8 +135,7 @@
 
       // Empty slots before first day
       for (let i = 0; i < firstDay; i++) {
-        const emptyCell = document.createElement("div");
-        calendarEl.appendChild(emptyCell);
+        calendarEl.appendChild(document.createElement("div"));
       }
 
       // Days
@@ -137,13 +149,14 @@
         checkbox.type = "checkbox";
         checkbox.id = dateKey;
 
-        // Load saved state
-        if (localStorage.getItem("meds-" + dateKey) === "true") {
+        // Load from medsData object
+        if (medsData[dateKey] === true) {
           checkbox.checked = true;
         }
 
         checkbox.addEventListener("change", () => {
-          localStorage.setItem("meds-" + dateKey, checkbox.checked);
+          medsData[dateKey] = checkbox.checked;
+          saveMedsData(medsData);
         });
 
         const label = document.createElement("label");
